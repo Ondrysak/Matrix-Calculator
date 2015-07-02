@@ -1,0 +1,637 @@
+#include "c_ui.h"
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <map>
+#include <limits>
+#include <iostream>
+#include <iomanip>
+using namespace std;
+string C_Ui::GetNonExisting(){
+    string user_input;
+    in>>user_input;
+    while(StMap.find(user_input)!= StMap.end() ||  SparseMap.find(user_input)!= SparseMap.end())
+        {
+            out<<"Matice s timto jmenem uz existuje, zadejte jine jmeno:";
+            in.clear();
+            in.ignore(numeric_limits<streamsize>::max(), '\n');
+            in>>user_input;
+        }
+    return user_input;
+}
+C_Ui::C_Ui(ostream & output, istream & input, int maximal):out(output), in(input), max_rc(maximal)
+{
+
+}
+int C_Ui::ReadInt(int minimal, int maximal)
+{
+    int num;
+    bool ok = false;
+    while(!ok)
+    {
+
+        if(in>>num)
+        {
+            in.clear();
+            in.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            if(!(num<minimal || num>maximal))
+            {
+                ok=true;
+            }
+            else
+            {
+                out<<"Spatne zadane cislo!"<<endl;
+                out<<"Zadejte cislo ktere je validni:";
+            }
+        }
+        else
+        {
+            in.clear();
+            in.ignore(numeric_limits<streamsize>::max(), '\n');
+            out<<"Tohle ani neni cislo!"<<endl;
+            out<<"Zadejte cislo ktere je validni:";
+        }
+
+    }
+    return num;
+}
+double C_Ui::ReadDoub()
+{
+    double num;
+    bool ok = false;
+    while(!ok)
+    {
+
+        if(in>>num)
+        {
+            in.clear();
+            in.ignore(numeric_limits<streamsize>::max(), '\n');
+            ok=true;
+        }
+        else
+        {
+            in.clear();
+            in.ignore(numeric_limits<streamsize>::max(), '\n');
+            out<<"Tohle ani neni cislo!"<<endl;
+            out<<"Zadejte cislo ktere je validni:";
+        }
+
+    }
+    return num;
+}
+int C_Ui::Run()
+{
+    bool konec= false;
+    int num;
+    while(!konec)
+    {
+        out<<"==========================================="<<endl;
+        out<<"Co chcete provest?"<<endl;
+        out<<"1. Konec"<<endl;
+        out<<"2. Zalozit matici"<<endl;
+        out<<"3. Vypsat matici"<<endl;
+        out<<"4. Zmenit prvek matice"<<endl;
+        out<<"5. Secist dve matice"<<endl;
+        out<<"6. Odecist dve matice"<<endl;
+        out<<"7. Transponovat matici"<<endl;
+        out<<"8. Gaussova eliminace na matici"<<endl;
+        out<<"9. Zalozit matici a zadat hodnoty"<<endl;
+        out<<"10. Zjistit hodnost matice"<<endl;
+        out<<"11. Zjistit determinant matice"<<endl;
+        out<<"12. Vynasobit matice"<<endl;
+        out<<"13. Nalezt inverzni matici"<<endl;
+        out<<"14. Ulozit matici do souboru"<<endl;
+        out<<"15. Nacist matici ze souboru"<<endl;
+        out<<"Zadejte cislo prikazu ktery se ma provest:";
+        num=ReadInt(1,15);
+        if(num==1)
+        {
+            konec = true;
+        }
+        if(num==2)
+        {
+            this->Input();
+        }
+        if(num==3)
+        {
+            this->Output();
+        }
+        if(num==4)
+        {
+            this->Change();
+        }
+        if(num==5)
+        {
+            this->Add();
+        }
+        if(num==6)
+        {
+            this->Sub();
+        }
+        if(num==7)
+        {
+            this->Trans();
+        }
+        if(num==8)
+        {
+            this->Elim();
+        }
+        if(num==9)
+        {
+            this->Input_Val();
+        }
+        if(num==10)
+        {
+            this->Rank();
+        }
+        if(num==11)
+        {
+            this->Determ();
+        }
+        if(num==12)
+        {
+            this->Mult();
+        }
+         if(num==13)
+        {
+            this->Inverse();
+        }
+         if(num==14)
+        {
+            this->Save();
+        }
+         if(num==15)
+        {
+            this->Load();
+        }
+
+    }
+    return 0;
+}
+C_Matrix * C_Ui::Input()
+{
+    string user_input;
+    C_Matrix * returning;
+    int rows,columns,user_opt;
+    out<<"1. Pouzit standartni format"<<endl;
+    out<<"2. Pouzit dok format"<<endl;
+    out<<"Ktery format chcete pro ulozeni pouzit:";
+    user_opt=ReadInt(1,2);
+    if(user_opt==1)
+    {
+        out<<"Zadejte jmeno pod kterym chcete matici ulozit:";
+        user_input=GetNonExisting();
+        out<<"Zadejte pozadovany pocet radek matice:";
+        rows=ReadInt(1,max_rc);
+        out<<"Zadejte pozadovany pocet sloupcu matice:";
+        columns=ReadInt(1,max_rc);
+        C_StandartMatrix nova(rows, columns);
+        StMap[user_input]=nova;
+        out<<"Matice "<<user_input<<" zalozena a inicializovana nulami!"<<endl;
+        returning  = &StMap[user_input];
+    }
+    if(user_opt==2)
+    {
+        out<<"Zadejte jmeno pod kterym chcete matici ulozit:";
+        user_input=GetNonExisting();
+        out<<"Zadejte pozadovany pocet radek matice:";
+        rows=ReadInt(1,max_rc);
+        out<<"Zadejte pozadovany pocet sloupcu matice:";
+        columns=ReadInt(1,max_rc);
+        C_DokMatrix nova(rows, columns);
+        SparseMap[user_input]=nova;
+        out<<"Matice "<<user_input<<" zalozena a inicializovana nulami!"<<endl;
+        returning  = &SparseMap[user_input];
+    }
+    return returning;
+}
+C_Matrix * C_Ui::GetExisting()
+{
+    string user_input;
+    C_Matrix * returning;
+    in>>user_input;
+    while(StMap.find(user_input)== StMap.end() && SparseMap.find(user_input)== SparseMap.end())
+    {
+        out<<"Matice s timto jmenem neexistuje, zadejte jine jmeno:";
+        in.clear();
+        in.ignore(numeric_limits<streamsize>::max(), '\n');
+        in>>user_input;
+    }
+    if(StMap.find(user_input)!= StMap.end())
+    {
+        returning  = &StMap[user_input];
+    }
+    else
+    {
+        returning  = &SparseMap[user_input];
+    }
+    return returning;
+}
+int C_Ui::Input_Val()
+{
+    C_Matrix * matrix_pointer;
+    matrix_pointer = Input();
+    int rows, columns;
+    rows = matrix_pointer->Get_Rows();
+    columns = matrix_pointer->Get_Columns();
+    for(int i = 1; i<=rows; i++)
+    {
+        for(int j = 1; j<=columns; j++)
+        {
+            double val;
+            out<<"zadejte hodnotu prvku "<<i<<","<<j<<":";
+            val =  ReadDoub();
+            matrix_pointer->Set_Val(i,j,val);
+
+        }
+
+    }
+    return 0;
+}
+int C_Ui::Output()
+{
+    C_Matrix * matrix_pointer;
+    out<<"Zadejte jmeno matice kterou chcete vypsat:";
+    matrix_pointer = GetExisting();
+    matrix_pointer->Print(out);
+    return 0;
+}
+int C_Ui::Save()
+{
+    C_Matrix * matrix_pointer;
+    out<<"Zadejte jmeno matice kterou chcete ulozit do souboru:";
+    matrix_pointer = GetExisting();
+    int rows, columns;
+    rows = matrix_pointer->Get_Rows();
+    columns = matrix_pointer->Get_Columns();
+    ofstream myfile;
+    string user_input;
+    out<<"Zadejte jmeno souboru do ktereho chcete matici ulozit:";
+    in>>user_input;
+
+    myfile.open (user_input, ios::trunc);
+    myfile<<rows<<" "<<columns<<" ";
+    for(int i = 1; i<=rows; i++ ){
+        for(int j =1 ; j<=columns; j++){
+         double val;
+         val = matrix_pointer->Get_Val(i,j);
+         myfile<<setprecision(numeric_limits<double>::digits10)<<val<<" ";
+        }
+
+    }
+    myfile.close();
+    return 0;
+}
+int C_Ui::Load()
+{
+
+    string user_input;
+    out<<"Zadejte jmeno souboru ze ktereho chcete matici nacist:";
+    in>>user_input;
+    ifstream myfile;
+    myfile.open(user_input);
+    int rows, columns;
+    myfile>>rows;
+    myfile>>columns;
+    
+    C_StandartMatrix temp(rows,columns);
+    for(int i = 1; i<=rows; i++ ){
+        for(int j =1 ; j<=columns; j++){
+         double val;
+         myfile>>val;
+         temp.Set_Val(i,j,val);
+        }
+
+    }
+    out<<"Zadejte pod kterym chcete matici ulozit:";
+    string user_input_2;
+    user_input_2=GetNonExisting();
+    StMap[user_input_2]= temp;
+    return 0;
+}
+int C_Ui::Determ()
+{
+    C_Matrix * matrix_pointer;
+    out<<"Zadejte jmeno matice pro kterou chcete zjistit determinant:";
+    matrix_pointer = GetExisting();
+    if(matrix_pointer->Get_Columns()!=matrix_pointer->Get_Rows())
+    {
+        out<<"Determinant lze definovat pouze na ctvercove matici!"<<endl;
+    }
+    else
+    {
+        int rows, columns;
+        rows = matrix_pointer->Get_Rows();
+        columns = matrix_pointer->Get_Columns();
+        C_StandartMatrix temp(rows,columns);
+        for(int i = 1; i<=rows; i++)
+        {
+            for(int j = 1; j<=columns; j++)
+            {
+
+                temp.Set_Val(i,j, matrix_pointer->Get_Val(i,j));
+
+            }
+
+        }
+        cout<<"Matice ma determinant "<<temp.Det()<<" !"<<endl;
+    }
+    return 0;
+}
+
+int C_Ui::Change()
+{
+    C_Matrix * matrix_pointer;
+    matrix_pointer = GetExisting();
+    int rows, columns,user_row,user_col,user_val;
+    rows = matrix_pointer->Get_Rows();
+    columns = matrix_pointer->Get_Columns();
+    out<<"Matice "<<rows<<"x"<<columns<<"!"<<endl;
+    matrix_pointer->Print(out);
+    out<<"Ktery radek:";
+    user_row=ReadInt(1,rows);
+    out<<endl;
+    out<<"Ktery sloupec:";
+    user_col=ReadInt(1,columns);
+    out<<endl;
+    out<<"Hodnota:";
+    user_val=ReadDoub();
+    matrix_pointer->Set_Val(user_row,user_col,user_val);
+    return 0;
+
+
+}
+int C_Ui::Add()
+{
+    string user_input_A,user_input_B;
+    out<<"Tato volba umoznuje provest s maticemi operaci A+B=C! Zadejte jmeno matice A:";
+    C_Matrix * matrix_pointer_A;
+    C_Matrix * matrix_pointer_B;
+    matrix_pointer_A = GetExisting();
+    out<<"Zadejte jmeno matice B:";
+    matrix_pointer_B = GetExisting();
+
+    int A_Rows,A_Cols,B_Rows,B_Cols;
+    A_Rows = matrix_pointer_A->Get_Rows();
+    A_Cols = matrix_pointer_A->Get_Columns();
+    B_Rows = matrix_pointer_B->Get_Rows();
+    B_Cols = matrix_pointer_B->Get_Columns();
+    string user_input_C;
+    if(A_Rows==B_Rows && A_Cols==B_Cols)
+    {
+        out<<"Matice maji shodne rozmery, zadejte jmeno matice C:";
+        user_input_C=GetNonExisting();
+
+    }
+    else
+    {
+        out<<"Matice nemaji shodne rozmery, secteni nelze provest!"<<endl;
+        return 1;
+    }
+    C_StandartMatrix temp(A_Rows,A_Cols);
+    for(int i = 1; i<=A_Rows; i++)
+    {
+        for(int j = 1; j<=A_Cols; j++)
+        {
+            double val;
+            val =  matrix_pointer_A->Get_Val(i,j)+matrix_pointer_B->Get_Val(i,j);
+            temp.Set_Val(i,j,val);
+
+        }
+
+    }
+    StMap[user_input_C] = temp;
+    out<<"Matice C=A+B se jmenem "<<user_input_C<<" je nyni k dispozici!"<<endl;
+    return 0;
+}
+int C_Ui::Sub()
+{
+    string user_input_A,user_input_B;
+    out<<"Tato volba umoznuje provest s maticemi operaci A+B=C! Zadejte jmeno matice A:";
+    C_Matrix * matrix_pointer_A;
+    C_Matrix * matrix_pointer_B;
+    matrix_pointer_A = GetExisting();
+    out<<"Zadejte jmeno matice B:";
+    matrix_pointer_B = GetExisting();
+
+    int A_Rows,A_Cols,B_Rows,B_Cols;
+    A_Rows = matrix_pointer_A->Get_Rows();
+    A_Cols = matrix_pointer_A->Get_Columns();
+    B_Rows = matrix_pointer_B->Get_Rows();
+    B_Cols = matrix_pointer_B->Get_Columns();
+    string user_input_C;
+    if(A_Rows==B_Rows && A_Cols==B_Cols)
+    {
+        out<<"Matice maji shodne rozmery, zadejte jmeno matice C:";
+        user_input_C=GetNonExisting();
+
+    }
+    else
+    {
+        out<<"Matice nemaji shodne rozmery, odecteni nelze provest!"<<endl;
+        return 1;
+    }
+    C_StandartMatrix temp(A_Rows,A_Cols);
+    for(int i = 1; i<=A_Rows; i++)
+    {
+        for(int j = 1; j<=A_Cols; j++)
+        {
+            double val;
+            val =  matrix_pointer_A->Get_Val(i,j)-matrix_pointer_B->Get_Val(i,j);
+            temp.Set_Val(i,j,val);
+
+        }
+
+    }
+
+    StMap[user_input_C] = temp;
+    out<<"Matice C=A-B se jmenem "<<user_input_C<<" je nyni k dispozici!"<<endl;
+    return 0;
+}
+int C_Ui::Trans()
+{
+    C_Matrix * matrix_pointer;
+    out<<"Zadejte jmeno matice kterou chcete transponovat:";
+    matrix_pointer = GetExisting();
+    string user_input_B;
+    out<<"Zadejte jmeno pod kterym chcete transponovanou matici ulozit:";
+    user_input_B=GetNonExisting();
+    int rows, columns;
+    rows=matrix_pointer->Get_Rows();
+    columns=matrix_pointer->Get_Columns();
+    C_StandartMatrix temp(columns, rows);
+    for(int i = 1; i<=rows; i++)
+    {
+        for(int j = 1; j<=columns; j++)
+        {
+            double val;
+            val =  matrix_pointer->Get_Val(i,j);
+            temp.Set_Val(j,i,val);
+
+        }
+
+    }
+    StMap[user_input_B]= temp;
+    return 0;
+
+}
+int C_Ui::Elim()
+{
+    C_Matrix *  matrix_pointer;
+    out<<"Zadejte jmeno matice kterou chcete zeliminovat:";
+    matrix_pointer = GetExisting();
+    int rows, columns;
+    rows = matrix_pointer->Get_Rows();
+    columns = matrix_pointer->Get_Columns();
+    C_StandartMatrix temp(rows,columns);
+    for(int i = 1; i<=rows; i++)
+    {
+        for(int j = 1; j<=columns; j++)
+        {
+
+            temp.Set_Val(i,j, matrix_pointer->Get_Val(i,j));
+
+        }
+
+    }
+    string user_input_B;
+    out<<"Zadejte jmeno pod kterym chcete zeliminovanou matici ulozit:";
+   user_input_B=GetNonExisting();
+    C_StandartMatrix elimini;
+    elimini = temp.Gauss(false);
+    StMap[user_input_B]= elimini;
+    return 0;
+}
+
+int C_Ui::Rank()
+{
+
+    out<<"Zadejte jmeno matice pro kterou chcete zjistit hodnost:";
+    C_Matrix *  matrix_pointer;
+    out<<"Zadejte jmeno matice kterou chcete zeliminovat:";
+    matrix_pointer = GetExisting();
+    int rows, columns;
+    rows = matrix_pointer->Get_Rows();
+    columns = matrix_pointer->Get_Columns();
+    C_StandartMatrix temp(rows,columns);
+    for(int i = 1; i<=rows; i++)
+    {
+        for(int j = 1; j<=columns; j++)
+        {
+
+            temp.Set_Val(i,j, matrix_pointer->Get_Val(i,j));
+
+        }
+
+    }
+    C_StandartMatrix elimini;
+    elimini = temp.Gauss(false);
+    rows=elimini.Get_Rows();
+    columns=elimini.Get_Columns();
+    int zero_rows=0;
+    for(int i = 1; i<=rows; i++)
+    {
+        bool is_zero = true;
+        for(int j = 1; j<=columns; j++)
+        {
+            if(elimini.Get_Val(i,j)!=0)
+            {
+                is_zero=false;
+            }
+        }
+        if(is_zero==true)
+        {
+            zero_rows++;
+        }
+    }
+    int matrix_rank = rows-zero_rows;
+    out<<"Tato matice ma hodnost "<<matrix_rank<<"!"<<endl;
+    return 0;
+}
+int C_Ui::Inverse()
+{
+    C_Matrix *  matrix_pointer;
+    out<<"Zadejte jmeno matice kterou chcete zeliminovat:";
+    matrix_pointer = GetExisting();
+    int rows, columns;
+    rows = matrix_pointer->Get_Rows();
+    columns = matrix_pointer->Get_Columns();
+    if(rows!=columns){
+     out<<"Takova matice nema inverzi, neni ctvercova!"<<endl;
+        return 1;
+    }
+    C_StandartMatrix temp(rows,columns);
+    for(int i = 1; i<=rows; i++)
+    {
+        for(int j = 1; j<=columns; j++)
+        {
+
+            temp.Set_Val(i,j, matrix_pointer->Get_Val(i,j));
+
+        }
+
+    }
+    if(temp.Det()==0){
+         out<<"Takova matice nema inverzi, neni regularni!"<<endl;
+        return 1;
+
+    }
+    string user_input_B;
+    out<<"Zadejte jmeno pod kterym chcete inverzni matici ulozit:";
+    user_input_B=GetNonExisting();
+    C_StandartMatrix inverse_M;
+    inverse_M = temp.Inverse();
+    StMap[user_input_B]= inverse_M;
+    return 0;
+}
+
+int C_Ui::Mult()
+{
+    string user_input_A,user_input_B;
+    out<<"Tato volba umoznuje provest s maticemi operaci AB=C! Zadejte jmeno matice A:";
+    C_Matrix * matrix_pointer_A;
+    C_Matrix * matrix_pointer_B;
+    matrix_pointer_A = GetExisting();
+    out<<"Zadejte jmeno matice B:";
+    matrix_pointer_B = GetExisting();
+
+    int A_Rows,A_Cols,B_Rows,B_Cols;
+    A_Rows = matrix_pointer_A->Get_Rows();
+    A_Cols = matrix_pointer_A->Get_Columns();
+    B_Rows = matrix_pointer_B->Get_Rows();
+    B_Cols = matrix_pointer_B->Get_Columns();
+    string user_input_C;
+    if(A_Cols==B_Rows)
+    {
+        out<<"Matice maji odpovidajici, zadejte jmeno matice C:";
+        user_input_C=GetNonExisting();
+
+    }
+    else
+    {
+        out<<"Matice nemaji odpovidajici rozmery, pro matice UxJ  a IxK musi platit J==I pro nasobeni (UxJ)(IxK), nasobeni matic neni komutativni!"<<endl;
+        return 1;
+    }
+    C_StandartMatrix temp(A_Rows,B_Cols);
+    for(int i = 1; i<=A_Rows; i++)
+    {
+        for(int j = 1; j<=A_Cols; j++)
+        {
+            double val;
+            val = 0;
+            for(int k=1; k<=A_Cols; k++)
+            {
+                val+=matrix_pointer_A->Get_Val(i,k)*matrix_pointer_B->Get_Val(k,j);
+            }
+            temp.Set_Val(i,j,val);
+        }
+
+    }
+
+    StMap[user_input_C] = temp;
+    out<<"Matice C=AB se jmenem "<<user_input_C<<" je nyni k dispozici!"<<endl;
+    return 0;
+}

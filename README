@@ -1,0 +1,3 @@
+use make all, to generate documentation and compile
+use make run, to run the program
+use make doc, to generate documentation

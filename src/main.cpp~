@@ -1,0 +1,13 @@
+/**
+*@file
+*@brief This file creates an instance of the calculator on standart output and standart input and runs it.
+*
+*/
+#include <iostream>
+#include "c_ui.h"
+using namespace std;
+int main(){
+C_Ui moje(cout, cin,20);
+moje.Run();
+return 0;
+}
